@@ -2,6 +2,9 @@
 py -m pip install --upgrade pip
 py -m pip install --user virtualenv
 
+# installing jupyter notebook (optional)
+py -m pip install --user notebook
+
 # creating new virtual environments on windows
 cd <PROJECT DIR>
 py -m venv venv

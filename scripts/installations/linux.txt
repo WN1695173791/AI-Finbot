@@ -4,6 +4,7 @@ sudo apt-get install python3.6
 
 python3 -m pip install --user --upgrade pip #(python or python3)
 python3 -m pip install --user virtualenv #(python or python3)
+python3 -m pip install --user notebook #(python or python3)
 
 # creating new virtual environments on debian (change to project directory)
 cd <PROJECT DIR>

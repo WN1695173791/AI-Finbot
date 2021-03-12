@@ -1,0 +1,9 @@
+# for cloning repo
+git clone https://github.com/AkibMashrur/AI-Finbot
+
+# update repo
+git add --all
+git commit -m "your change message"
+git push
+
+

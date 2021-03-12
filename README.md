@@ -11,7 +11,7 @@ git clone https://github.com/AkibMashrur/AI-Finbot
 
 2. **Set API keys:** Create a .env file and insert binance keys (follow **.env.example** file for template). 
 
-3. **Install dependencies:** Create a new virtual environment in your directory and install dependencies into your virtual environment in the following code. Additional commands you may need for installing pip/venv/notebook and creating virtual environments is given in **scripts/installation** folder. 
+3. **Install dependencies:** Create a new virtual environment in your directory and install dependencies into your virtual environment in the following code. Additional commands you may need for installing pip/venv/notebook and creating virtual environments is given in **guides/installation** folder. 
 
 On linux shell:
 ```bash

@@ -1,7 +1,14 @@
-# for cloning repo
+### For initiating the local project repo (only once per device)
+# for cloning repo, first cd to Projects folder
 git clone https://github.com/AkibMashrur/AI-Finbot
 
+
+### To update main repo from different devices (recurring)
 # update repo
+git pull
+
+# make changes #
+
 git add --all
 git commit -m "your change message"
 git push

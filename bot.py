@@ -3,6 +3,6 @@ class Bot():
         self.name = name
 
     def hello(self):
-        print(f"{self.name} ~(^_^)~")
+        print(f"{self.name}: ~(^_^)~")
 
     

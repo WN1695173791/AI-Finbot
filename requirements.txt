@@ -1,1 +1,3 @@
+pylint-venv
 python-dotenv
+torch

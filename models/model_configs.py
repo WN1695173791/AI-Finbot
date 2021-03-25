@@ -20,4 +20,4 @@ class SDEnet_configs():
     eval_iters = 100
 
     # prediction configs
-    pred_iters = 10000
+    pred_iters = 1000

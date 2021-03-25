@@ -1,3 +1,5 @@
+# reference: https://github.com/Lingkai-Kong/SDE-Net
+
 import math
 import torch
 from .model_configs import SDEnet_configs
@@ -74,7 +76,7 @@ class SDENet(torch.nn.Module):
                 out = out+self.drift(out)*self.deltat + diffusion_term*math.sqrt(self.deltat)*torch.randn_like(out).to(x)
             
             final_out = self.output_layer(out)
-            mean = final_out[:,0]
+            mean = torch.nn.functional.softmax(final_out[:,0], dim=0)
             sigma = torch.nn.functional.softplus(final_out[:,1])
             return mean, sigma
 
@@ -93,8 +95,7 @@ class SDENet(torch.nn.Module):
         self.drift_loss = lambda y, mean, sigma: torch.mean(torch.log(sigma**2)+(y-mean)**2/(sigma**2)) 
         self.optim_drift = torch.optim.SGD([{'params': self.pre_transform.parameters()}, {'params': self.drift.parameters()}, {'params': self.output_layer.parameters()}], lr=self.lr_1, momentum=self.momentum_1, weight_decay=self.weight_decay)
         self.optim_diffusion = torch.optim.SGD([{'params': net.diffusion.parameters()}], lr=self.lr_2, momentum=self.momentum_2, weight_decay=self.weight_decay)
-        self.noise_scale = noise_scale
-        self.test_iters = test_iters
+        self.noise_scale = noise_scale        
 
 
     def train_step(self, **kwargs):
@@ -129,6 +130,7 @@ class SDENet(torch.nn.Module):
 
 
     def evaluation_step(self, **kwargs):
+        self.eval_iters = eval_iters
         self.eval()
         inputs, targets = kwargs['batch_tuple']
         current_mean = 0
@@ -137,21 +139,20 @@ class SDENet(torch.nn.Module):
                 mean, sigma = self.forward(inputs)
                 current_mean += mean
             current_mean = current_mean/self.eval_iters
-            current_mean = current_mean*kwargs['target_scale']
-            targets = targets*kwargs['target_scale']
+            current_mean = torch.nn.functional.softmax(current_mean, dim=0)
             test_loss = kwargs['eval_func'](targets, current_mean)
         
         return test_loss.item()
 
     def prediction(self, **kwargs):
+        self.pred_iters = pred_iters
         self.eval()
-        inputs, targets = kwargs['batch_tuple']
+        inputs = kwargs['data']
         current_mean = 0
         current_sigma = 0
         with torch.no_grad():
             for i in range(self.pred_iters):
                 mean, sigma = self.forward(inputs)
-                mean = mean*kwargs['target_scale']
                 current_mean += mean
                 current_sigma += sigma
                 if i == 0:
@@ -161,11 +162,12 @@ class SDENet(torch.nn.Module):
                     means = torch.cat((means, torch.unsqueeze(mean, 1)), dim=1)
                     sigmas = torch.cat((sigmas, torch.unsqueeze(sigma, 1)), dim=1)
             current_mean = current_mean/self.pred_iters
+            current_mean = torch.nn.functional.softmax(current_mean, dim=0)
             current_sigma = current_sigma/self.pred_iters
             var_means = means.std(dim=1)
             var_sigmas = sigmas.std(dim=1)
         
-        return current_mean.item(), var_means.item(), current_sigma.item(), var_sigmas.item()
+        return current_mean, var_means, current_sigma, var_sigmas
 
     def save_model(self, **kwargs):
         pass

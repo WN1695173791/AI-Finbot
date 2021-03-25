@@ -14,8 +14,10 @@ class SDEnet_configs():
     weight_decay = 5e-4
 
     # train configs
-    epoch = 200
-    batch_size = 32
+    noise_scale = 2
 
-    # test configs
-    test_iters = 100
+    # evaluation configs
+    eval_iters = 100
+
+    # prediction configs
+    pred_iters = 10000

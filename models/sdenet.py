@@ -29,7 +29,6 @@ class Drift(torch.nn.Module):
         self.fc = torch.nn.Linear(latent_nodes, latent_nodes)
         self.relu = torch.nn.ReLU(inplace=True)
         
-
     def forward(self, x):
         out = self.relu(self.fc(x))
         return out
@@ -56,6 +55,7 @@ class Diffusion(torch.nn.Module):
 
 class SDENet(torch.nn.Module):
     global drift_depth, latent_nodes, in_nodes, lr_1, lr_2, momentum_1, momentum_2, weight_decay, noise_scale, eval_iters, predict_iters
+    custom_name = 'SDE-Net'
     def __init__(self):
         super().__init__()
         self.drift_depth = drift_depth
@@ -85,17 +85,19 @@ class SDENet(torch.nn.Module):
             return final_out
 
     def custom_compile(self):
+        self.apply(utils.pipelines.init_xavier_weights)
         self.lr_1 = lr_1
         self.lr_2 = lr_2
         self.momentum_1 = momentum_1
         self.momentum_2 = momentum_2
+        self.weight_decay = weight_decay
         self.real_label = 0
         self.fake_label = 1
         self.diffusion_loss = torch.nn.BCELoss()
         self.drift_loss = lambda y, mean, sigma: torch.mean(torch.log(sigma**2)+(y-mean)**2/(sigma**2)) 
         self.optim_drift = torch.optim.SGD([{'params': self.pre_transform.parameters()}, {'params': self.drift.parameters()}, {'params': self.output_layer.parameters()}], lr=self.lr_1, momentum=self.momentum_1, weight_decay=self.weight_decay)
-        self.optim_diffusion = torch.optim.SGD([{'params': net.diffusion.parameters()}], lr=self.lr_2, momentum=self.momentum_2, weight_decay=self.weight_decay)
-        self.noise_scale = noise_scale        
+        self.optim_diffusion = torch.optim.SGD([{'params': self.diffusion.parameters()}], lr=self.lr_2, momentum=self.momentum_2, weight_decay=self.weight_decay)
+        self.noise_scale = noise_scale       
 
 
     def train_step(self, **kwargs):
@@ -170,18 +172,16 @@ class SDENet(torch.nn.Module):
         return current_mean, var_means, current_sigma, var_sigmas
 
     def save_model(self, **kwargs):
-        pass
+        torch.save({
+            'model_state_dict': self.state_dict(),
+            'drift_optim_state_dict': self.optim_drift.state_dict(),
+            'diffusion_optim_state_dict': self.optim_diffusion.state_dict()
+            }, kwargs['path'])
+
 
     def load_model(self, **kwargs):
-        pass
-
-
-
-
-
+        checkpoint = torch.load(kwargs['path'])
+        self.load_state_dict(checkpoint['model_state_dict'])
+        self.optim_drift.load_state_dict(checkpoint['drift_optim_state_dict'])
+        self.optim_diffusion.load_state_dict(checkpoint['diffusion_optim_state_dict'])
     
-
-
-
-
-
